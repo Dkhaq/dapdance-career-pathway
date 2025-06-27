@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dapdance Career Pathway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chosen Palette: Warm Neutrals with Teal Accent -->
+    <!-- Application Structure Plan: The application uses a vertical interactive timeline to represent the career journey. This structure is intuitive for showing progression and allows users to explore each stage without being overwhelmed by text. It is supplemented by a radar chart for skill visualization and summary cards for key takeaways. This design prioritizes user engagement and clarity over a simple linear text presentation. -->
+    <!-- Visualization & Content Choices: 
+        - Career Path: An interactive timeline (HTML/CSS/JS) is used to present the 4 stages. Goal: Inform & show progression. Interaction: Clicking a stage expands its details. Justification: More engaging and organized than a long text document.
+        - Skill Development: A Radar Chart (Chart.js) is used to compare required skills across stages. Goal: Compare skill growth. Interaction: Buttons to switch views between stages. Justification: Provides a quick, impactful visual summary of an employee's growth profile.
+        - Key Factors: Styled cards with icons (HTML/Tailwind) are used for the final summary. Goal: Emphasize core requirements. Justification: Makes critical information stand out and easy to remember.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      body {
+        font-family: "Be Vietnam Pro", sans-serif;
+        background-color: #f8f7f4;
+      }
+      .timeline-item-content {
+        transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+        max-height: 0;
+        overflow: hidden;
+      }
+      .timeline-item-content.open {
+        max-height: 1000px;
+      }
+      .timeline-line {
+        position: absolute;
+        left: 19px;
+        top: 20px;
+        bottom: 20px;
+        width: 2px;
+        background-color: #d1d5db;
+      }
+      .timeline-marker {
+        position: absolute;
+        left: 8px;
+        top: 10px;
+        height: 24px;
+        width: 24px;
+        background-color: #f8f7f4;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        z-index: 10;
+        transition: all 0.3s;
+      }
+      .timeline-item.active .timeline-marker {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 350px;
+        max-height: 50vh;
+      }
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 450px;
+        }
+      }
+      .btn-active {
+        background-color: #0d9488 !important;
+        color: white !important;
+      }
+    </style>
+  </head>
+  <body class="text-gray-800">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto px-4 py-4">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-teal-700">
+          Career Pathway <span class="text-teal-600">Dapdance</span>
+        </h1>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+      <section id="intro" class="text-center max-w-3xl mx-auto mb-12">
+        <h2 class="text-3xl font-bold mb-4">Bước đầu cho sự nghiệp bền vững</h2>
+        <p class="text-lg text-gray-600">
+          Tại Dapdance, chúng tôi không chỉ trao cho bạn một công việc, chúng
+          tôi mang đến một con đường sự nghiệp rõ ràng. Khám phá hành trình từ
+          một Telesales tiềm năng trở thành một nhà quản lý kinh doanh xuất sắc,
+          với sự đào tạo và hỗ trợ toàn diện ở mỗi bước đi.
+        </p>
+      </section>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div class="lg:col-span-3">
+          <section id="timeline">
+            <h3 class="text-2xl font-bold mb-6 text-center lg:text-left">
+              Các Giai Đoạn Thăng Tiến
+            </h3>
+            <div class="relative">
+              <div class="timeline-line hidden sm:block"></div>
+              <div id="timeline-container"></div>
+            </div>
+          </section>
+        </div>
+        <div class="lg:col-span-2">
+          <section
+            id="skills-visualization"
+            class="bg-white p-6 rounded-xl shadow-lg sticky top-24"
+          >
+            <h3 class="text-2xl font-bold mb-4 text-center">
+              Sự Phát Triển Kỹ Năng
+            </h3>
+            <p class="text-center text-gray-600 mb-6">
+              Chọn giai đoạn để xem bộ kỹ năng yêu cầu và được đào tạo.
+            </p>
+            <div class="chart-container">
+              <canvas id="skillsRadarChart"></canvas>
+            </div>
+            <div
+              id="chart-controls"
+              class="flex flex-wrap justify-center gap-2 mt-4"
+            ></div>
+          </section>
+        </div>
+      </div>
+
+      <section id="summary" class="mt-16">
+        <h2 class="text-3xl font-bold text-center mb-8">
+          Yếu Tố Quan Trọng Để Thành Công
+        </h2>
+        <div
+          id="key-factors-container"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
+        ></div>
+      </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+      <div class="container mx-auto px-4 py-6 text-center">
+        <p>&copy; 2025 Dapdance. Mọi quyền được bảo lưu.</p>
+      </div>
+    </footer>
+
+    <script>
+      const careerData = [
+        {
+          stage: "Giai Đoạn 1",
+          title: "Telesales",
+          duration: "0 - 6 tháng",
+          goal: "Nắm vững sản phẩm, kỹ năng giao tiếp qua điện thoại, và tạo ra lượng khách hàng tiềm năng chất lượng.",
+          description: [
+            "Thực hiện cuộc gọi đến danh sách khách hàng tiềm năng được cung cấp (cold/warm leads).",
+            "Giới thiệu các dự án Bất Động Sản cho thuê của công ty (Feliz En Vista, Lexington, Diamond Island, Metropole Thủ Thiêm, Masteri Thảo Điền, Vista Verde).",
+            "Tư vấn thông tin sơ bộ về căn hộ, tiện ích, giá cả.",
+            "Thu thập thông tin, sàng lọc nhu cầu khách hàng và xác định khách hàng tiềm năng (leads chất lượng).",
+            "Thiết lập cuộc hẹn/chuyển thông tin khách hàng tiềm năng đã đủ điều kiện cho bộ phận Kinh doanh/chuyên viên tư vấn.",
+            "Cập nhật thông tin khách hàng vào hệ thống quản lý.",
+          ],
+          skills: [
+            {
+              name: "Kiến thức sản phẩm",
+              details: "Đặc điểm, tiện ích, vị trí, giá cả các dự án.",
+            },
+            {
+              name: "Kỹ năng mềm",
+              details:
+                "Kỹ năng giao tiếp qua điện thoại, thuyết phục, lắng nghe chủ động, xử lý từ chối.",
+            },
+            {
+              name: "Tin học văn phòng",
+              details: "Sử dụng Excel/Google Sheets để quản lý dữ liệu cơ bản.",
+            },
+            {
+              name: "Thái độ",
+              details:
+                "Kiên trì, chịu khó, chủ động học hỏi và chịu áp lực công việc.",
+            },
+          ],
+          promotion: [
+            "Hoàn thành chỉ tiêu cuộc gọi và số lượng leads chất lượng đạt/vượt KPI đề ra liên tục trong 3-6 tháng.",
+            "Nắm vững kiến thức sản phẩm và quy trình làm việc.",
+            "Có thái độ tích cực, chủ động trong công việc và hòa nhập với đội nhóm.",
+          ],
+        },
+        {
+          stage: "Giai Đoạn 2",
+          title: "Senior Telesales / Team Lead",
+          duration: "6 tháng - 1.5 năm",
+          goal: "Nâng cao hiệu suất cá nhân, bắt đầu hỗ trợ và hướng dẫn đồng đội, tối ưu hóa quy trình Telesales.",
+          description: [
+            "Tiếp tục thực hiện các công việc của Telesales với hiệu suất cao hơn, xử lý các trường hợp khách hàng khó.",
+            "Tham gia vào việc xây dựng kịch bản Telesales hiệu quả.",
+            "Hỗ trợ đào tạo, hướng dẫn, kèm cặp các Telesales mới (đặc biệt là sinh viên/người chưa kinh nghiệm).",
+            "Kiểm tra chất lượng cuộc gọi và đưa ra phản hồi cho đội nhóm (nếu là Team Lead).",
+            "Đề xuất cải tiến quy trình Telesales để tăng hiệu quả.",
+          ],
+          skills: [
+            {
+              name: "Kỹ năng lãnh đạo cơ bản",
+              details: "Kỹ năng truyền đạt, giải quyết vấn đề cho đồng đội.",
+            },
+            {
+              name: "Phân tích dữ liệu",
+              details:
+                "Đọc hiểu các báo cáo cơ bản về hiệu suất cuộc gọi, leads.",
+            },
+            {
+              name: "Kiến thức thị trường",
+              details:
+                "Hiểu biết sâu hơn về phân khúc khách hàng, đối thủ cạnh tranh.",
+            },
+            {
+              name: "Khả năng giải quyết vấn đề",
+              details: "Xử lý các tình huống phức tạp hơn với khách hàng.",
+            },
+          ],
+          promotion: [
+            "Hoàn thành chỉ tiêu cá nhân ở mức xuất sắc liên tục.",
+            "Có khả năng hướng dẫn, hỗ trợ đồng nghiệp đạt mục tiêu.",
+            "Đóng góp vào việc cải thiện quy trình làm việc.",
+            "Được quản lý đánh giá cao về năng lực và thái độ.",
+          ],
+        },
+        {
+          stage: "Giai Đoạn 3",
+          title: "Sales Executive / Consultant",
+          duration: "1.5 năm - 3 năm",
+          goal: "Trực tiếp tư vấn, dẫn khách đi xem nhà, đàm phán và chốt hợp đồng thuê Bất Động Sản.",
+          description: [
+            "Tiếp nhận leads chất lượng cao từ đội Telesales hoặc tự tìm kiếm khách hàng tiềm năng.",
+            "Tư vấn chuyên sâu về các dự án và căn hộ thuê phù hợp với nhu cầu khách hàng.",
+            "Dẫn khách hàng đi xem nhà, đánh giá và tư vấn các điểm mạnh/yếu của từng căn.",
+            "Đàm phán các điều khoản hợp đồng thuê với khách hàng và chủ nhà.",
+            "Hỗ trợ khách hàng hoàn tất thủ tục ký kết hợp đồng.",
+            "Chăm sóc khách hàng sau bán hàng để tạo mối quan hệ lâu dài.",
+          ],
+          skills: [
+            {
+              name: "Kỹ năng bán hàng chuyên sâu",
+              details:
+                "Kỹ năng thuyết trình, đàm phán, chốt sales, xử lý các phản đối phức tạp.",
+            },
+            {
+              name: "Kiến thức pháp lý BĐS",
+              details:
+                "Hiểu biết cơ bản về hợp đồng thuê, các quy định liên quan.",
+            },
+            {
+              name: "Kỹ năng tư vấn",
+              details:
+                "Khả năng nắm bắt tâm lý, nhu cầu sâu sắc của khách hàng.",
+            },
+            {
+              name: "Kỹ năng giao tiếp trực tiếp",
+              details: "Tự tin, chuyên nghiệp khi gặp gỡ khách hàng.",
+            },
+            {
+              name: "Quản lý thời gian & mục tiêu",
+              details: "Tổ chức công việc hiệu quả để đạt KPI.",
+            },
+          ],
+          promotion: [
+            "Đạt/vượt chỉ tiêu doanh số và số lượng hợp đồng thuê được ký kết liên tục.",
+            "Có khả năng tự chủ trong việc tìm kiếm và chốt giao dịch.",
+            "Xây dựng được danh sách khách hàng trung thành.",
+            "Tham gia tích cực vào các hoạt động đội nhóm và chia sẻ kinh nghiệm.",
+          ],
+        },
+        {
+          stage: "Giai Đoạn 4",
+          title: "Sales Team Leader / Manager",
+          duration: "Từ 3 năm trở lên",
+          goal: "Lãnh đạo, quản lý và phát triển đội ngũ Telesales và/hoặc Sales Executive để đạt được các mục tiêu kinh doanh.",
+          description: [
+            "Xây dựng kế hoạch, chiến lược bán hàng cho đội nhóm.",
+            "Tuyển dụng, đào tạo và phát triển năng lực cho các thành viên trong đội.",
+            "Phân công chỉ tiêu, giám sát hiệu suất và đưa ra hỗ trợ kịp thời.",
+            "Giải quyết các vấn đề phát sinh trong đội nhóm và với khách hàng.",
+            "Phối hợp với các phòng ban khác (Marketing, Admin) để tối ưu hóa quy trình.",
+            "Tham gia vào hoạch định chiến lược kinh doanh tổng thể của công ty.",
+          ],
+          skills: [
+            {
+              name: "Kỹ năng quản lý & lãnh đạo",
+              details:
+                "Lập kế hoạch, tổ chức, điều hành, truyền động lực, đánh giá hiệu suất.",
+            },
+            {
+              name: "Kỹ năng coaching & mentorship",
+              details: "Hướng dẫn, phát triển nhân sự.",
+            },
+            {
+              name: "Kiến thức chuyên sâu về thị trường BĐS",
+              details: "Phân tích xu hướng, đối thủ.",
+            },
+            {
+              name: "Tư duy chiến lược",
+              details: "Khả năng nhìn nhận và giải quyết vấn đề ở tầm vĩ mô.",
+            },
+          ],
+          promotion: [
+            "Đội nhóm đạt/vượt các chỉ tiêu doanh số và hiệu suất.",
+            "Có khả năng xây dựng và duy trì một đội ngũ mạnh, gắn kết.",
+            "Đóng góp vào sự tăng trưởng bền vững của công ty.",
+            "Được ban lãnh đạo công nhận.",
+          ],
+        },
+      ];
+
+      const keyFactors = [
+        {
+          icon: "💡",
+          title: "Chủ động học hỏi",
+          text: "Không ngừng trau dồi kiến thức về sản phẩm, thị trường, và các kỹ năng cần thiết.",
+        },
+        {
+          icon: "😊",
+          title: "Thái độ tích cực",
+          text: "Luôn giữ tinh thần lạc quan, kiên trì và chủ động trong mọi việc để vượt qua thách thức.",
+        },
+        {
+          icon: "🤝",
+          title: "Tương tác & Xây dựng quan hệ",
+          text: "Tích cực giao lưu, học hỏi từ đồng nghiệp và xây dựng mạng lưới khách hàng/đối tác.",
+        },
+        {
+          icon: "🌊",
+          title: "Khả năng thích nghi",
+          text: "Sẵn sàng thay đổi và học hỏi để phù hợp với những biến động không ngừng của thị trường.",
+        },
+        {
+          icon: "🎯",
+          title: "Luôn hướng đến hiệu quả",
+          text: "Đặt mục tiêu cao và nỗ lực hết mình để hoàn thành, mang lại kết quả tốt nhất.",
+        },
+      ];
+
+      const skillChartData = {
+        labels: [
+          "Giao tiếp & Tư vấn",
+          "Kiến thức SP & Thị trường",
+          "Kỹ năng Bán hàng",
+          "Phân tích & Giải quyết VĐ",
+          "Lãnh đạo & Đào tạo",
+        ],
+        datasets: [
+          {
+            stage: 0,
+            label: "Telesales",
+            data: [4, 3, 2, 2, 1],
+            borderColor: "#0d9488",
+            backgroundColor: "rgba(20, 184, 166, 0.2)",
+          },
+          {
+            stage: 1,
+            label: "Senior/Team Lead",
+            data: [5, 4, 3, 4, 3],
+            borderColor: "#0d9488",
+            backgroundColor: "rgba(20, 184, 166, 0.2)",
+          },
+          {
+            stage: 2,
+            label: "Sales Executive",
+            data: [5, 4, 5, 4, 2],
+            borderColor: "#0d9488",
+            backgroundColor: "rgba(20, 184, 166, 0.2)",
+          },
+          {
+            stage: 3,
+            label: "Manager",
+            data: [5, 5, 5, 5, 5],
+            borderColor: "#0d9488",
+            backgroundColor: "rgba(20, 184, 166, 0.2)",
+          },
+        ],
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const timelineContainer = document.getElementById("timeline-container");
+        const chartControlsContainer =
+          document.getElementById("chart-controls");
+        const keyFactorsContainer = document.getElementById(
+          "key-factors-container"
+        );
+
+        careerData.forEach((item, index) => {
+          const timelineItem = document.createElement("div");
+          timelineItem.className = "timeline-item relative pb-8";
+          if (index === 0) timelineItem.classList.add("active");
+
+          timelineItem.innerHTML = `
+                    <div class="timeline-marker"></div>
+                    <div class="ml-12">
+                        <div class="cursor-pointer">
+                            <h4 class="text-xl font-bold text-teal-700">${
+                              item.title
+                            }</h4>
+                            <p class="text-sm font-medium text-gray-500">${
+                              item.stage
+                            } (${item.duration})</p>
+                            <p class="mt-2 text-gray-700 font-medium">${
+                              item.goal
+                            }</p>
+                            <span class="absolute right-0 top-2 text-2xl text-gray-400 transition-transform duration-300 transform">
+                                ${index === 0 ? "−" : "+"}
+                            </span>
+                        </div>
+                        <div class="timeline-item-content ${
+                          index === 0 ? "open pt-4" : ""
+                        }">
+                            <div class="mt-4">
+                                <h5 class="font-semibold mb-2">Mô tả công việc:</h5>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                    ${item.description
+                                      .map((d) => `<li>${d}</li>`)
+                                      .join("")}
+                                </ul>
+                            </div>
+                            <div class="mt-4">
+                                <h5 class="font-semibold mb-2">Kiến thức & Kỹ năng được đào tạo:</h5>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                     ${item.skills
+                                       .map(
+                                         (s) =>
+                                           `<li><strong>${s.name}:</strong> ${s.details}</li>`
+                                       )
+                                       .join("")}
+                                </ul>
+                            </div>
+                            <div class="mt-4">
+                                <h5 class="font-semibold mb-2">Tiêu chí thăng tiến:</h5>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                    ${item.promotion
+                                      .map((p) => `<li>${p}</li>`)
+                                      .join("")}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+          timelineContainer.appendChild(timelineItem);
+        });
+
+        timelineContainer
+          .querySelectorAll(".cursor-pointer")
+          .forEach((header, index) => {
+            header.addEventListener("click", () => {
+              const content = header.nextElementSibling;
+              const icon = header.querySelector("span");
+
+              document
+                .querySelectorAll(".timeline-item")
+                .forEach((item) => item.classList.remove("active"));
+              header.closest(".timeline-item").classList.add("active");
+
+              if (content.classList.contains("open")) {
+                // Don't close if it's already open, unless we want toggle functionality
+              } else {
+                document
+                  .querySelectorAll(".timeline-item-content.open")
+                  .forEach((openContent) => {
+                    openContent.classList.remove("open", "pt-4");
+                    openContent.previousElementSibling.querySelector(
+                      "span"
+                    ).textContent = "+";
+                  });
+                content.classList.add("open", "pt-4");
+                icon.textContent = "−";
+              }
+              updateChart(index);
+            });
+          });
+
+        careerData.forEach((item, index) => {
+          const button = document.createElement("button");
+          button.className =
+            "px-3 py-1.5 text-sm font-semibold text-teal-800 bg-teal-100 rounded-full hover:bg-teal-200 transition";
+          button.textContent = item.title;
+          if (index === 0) button.classList.add("btn-active");
+          button.addEventListener("click", () => updateChart(index));
+          chartControlsContainer.appendChild(button);
+        });
+
+        keyFactors.forEach((factor) => {
+          const factorCard = document.createElement("div");
+          factorCard.className =
+            "bg-white p-6 rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
+          factorCard.innerHTML = `
+                    <div class="text-4xl mb-4">${factor.icon}</div>
+                    <h4 class="text-lg font-bold mb-2">${factor.title}</h4>
+                    <p class="text-gray-600">${factor.text}</p>
+                `;
+          keyFactorsContainer.appendChild(factorCard);
+        });
+
+        const ctx = document
+          .getElementById("skillsRadarChart")
+          .getContext("2d");
+        const skillsChart = new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels: skillChartData.labels,
+            datasets: [skillChartData.datasets[0]],
+          },
+          options: {
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                angleLines: { color: "rgba(0, 0, 0, 0.1)" },
+                grid: { color: "rgba(0, 0, 0, 0.1)" },
+                pointLabels: {
+                  font: { size: 12, weight: "bold" },
+                  color: "#4b5563",
+                },
+                ticks: {
+                  beginAtZero: true,
+                  max: 5,
+                  stepSize: 1,
+                  backdropColor: "transparent",
+                  color: "#6b7280",
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  font: {
+                    size: 14,
+                    weight: "bold",
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        function updateChart(stageIndex) {
+          skillsChart.data.datasets = [skillChartData.datasets[stageIndex]];
+          skillsChart.update();
+
+          chartControlsContainer
+            .querySelectorAll("button")
+            .forEach((btn, index) => {
+              btn.classList.toggle("btn-active", index === stageIndex);
+            });
+
+          document.querySelectorAll(".timeline-item").forEach((item, index) => {
+            item.classList.toggle("active", index === stageIndex);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
